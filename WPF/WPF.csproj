@@ -14,20 +14,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Icons\loop.png" />
-    <None Remove="Icons\pause.png" />
-    <None Remove="Icons\play.png" />
-    <None Remove="Icons\stop.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="Icons\loop.png" />
-    <Resource Include="Icons\pause.png" />
-    <Resource Include="Icons\play.png" />
-    <Resource Include="Icons\stop.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>

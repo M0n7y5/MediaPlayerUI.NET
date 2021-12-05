@@ -6,6 +6,63 @@
     <local:TimeSpanToDoubleConverter x:Key="TimeSpanToDoubleConverter" />
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
 
+    <Style x:Key="TransparentButton" TargetType="{x:Type Button}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border CornerRadius="5">
+                        <Border.Style>
+                            <Style TargetType="{x:Type Border}">
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#15FFFFFF" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <Grid
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Background="Transparent">
+                            <ContentPresenter />
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="TransparentToggle" TargetType="{x:Type ToggleButton}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="_content" Property="TextBlock.Foreground" Value="LimeGreen" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                    <Border x:Name="border" CornerRadius="5">
+                        <Border.Style>
+                            <Style TargetType="{x:Type Border}">
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#15FFFFFF" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <Grid
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Background="Transparent">
+                            <ContentPresenter x:Name="_content" />
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style x:Key="SeekBarSlider" TargetType="Slider">
         <Setter Property="Focusable" Value="False" />
         <Setter Property="OverridesDefaultStyle" Value="true" />
@@ -183,7 +240,6 @@
 
                             <ContentPresenter Grid.Row="0" Content="{TemplateBinding Content}" />
 
-
                             <Grid Grid.Row="1">
 
                                 <Border
@@ -209,7 +265,7 @@
                                                 </LinearGradientBrush>
                                             </Rectangle.Fill>
                                         </Rectangle>
-                                        <Grid x:Name="GridUI" Margin="0,0,4,0">
+                                        <Grid x:Name="GridUI">
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="22" />
                                                 <RowDefinition Height="*" />
@@ -241,30 +297,27 @@
                                                 <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
                                                     <Button
                                                         x:Name="PlayButton"
-                                                        Width="36"
-                                                        Height="36"
-                                                        Padding="0"
-                                                        VerticalAlignment="Top"
+                                                        Width="46"
+                                                        Height="46"
                                                         Command="{Binding PlayPauseCommand, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}"
                                                         Content="&#xE102;"
                                                         Focusable="False"
                                                         FontFamily="Segoe MDL2 Assets"
                                                         Foreground="White"
-                                                        Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
-                                                        TextElement.FontSize="20"
+                                                        Style="{StaticResource TransparentButton}"
+                                                        TextElement.FontSize="30"
                                                         Visibility="{Binding IsPlayPauseVisible, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                                     <Button
                                                         x:Name="StopButton"
-                                                        Width="36"
-                                                        Height="36"
-                                                        VerticalAlignment="Top"
+                                                        Width="46"
+                                                        Height="46"
                                                         Command="{Binding StopCommand, RelativeSource={RelativeSource TemplatedParent}, Mode=OneWay}"
                                                         Content="&#xE71A;"
                                                         Focusable="False"
                                                         FontFamily="Segoe MDL2 Assets"
                                                         Foreground="White"
-                                                        Style="{StaticResource {x:Static ToolBar.ButtonStyleKey}}"
-                                                        TextElement.FontSize="20"
+                                                        Style="{StaticResource TransparentButton}"
+                                                        TextElement.FontSize="30"
                                                         Visibility="{Binding IsStopVisible, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                                 </StackPanel>
                                             </Grid>
@@ -338,7 +391,7 @@
                                                         FontFamily="Segoe MDL2 Assets"
                                                         Foreground="White"
                                                         IsChecked="{Binding PlayerHost.Loop, RelativeSource={RelativeSource TemplatedParent}}"
-                                                        Style="{StaticResource {x:Static ToolBar.ToggleButtonStyleKey}}"
+                                                        Style="{StaticResource TransparentToggle}"
                                                         Visibility="{Binding IsLoopVisible, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource BooleanToVisibilityConverter}}" />
                                                 </StackPanel>
                                             </Grid>
