@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using HanumanInstitute.MediaPlayer.WPF.Mvvm;
 
 namespace HanumanInstitute.MediaPlayer.WPF
@@ -15,7 +16,6 @@ namespace HanumanInstitute.MediaPlayer.WPF
     /// </summary>
     [TemplatePart(Name = MediaPlayer.UIPartName, Type = typeof(Border))]
     [TemplatePart(Name = MediaPlayer.SeekBarPartName, Type = typeof(Slider))]
-    //[TemplatePart(Name = MediaPlayer.SeekBarTrackPartName, Type = typeof(Track))]
     public class MediaPlayer : MediaPlayerBase, INotifyPropertyChanged
     {
         static MediaPlayer()
@@ -31,8 +31,23 @@ namespace HanumanInstitute.MediaPlayer.WPF
 
         private static object? CoerceContent(DependencyObject d, object baseValue) => baseValue as PlayerHostBase;
 
+        private DispatcherTimer _timer;
+        private int _MouseClickedCount = 0;
+        private MouseButtonEventArgs _CurrentMouseButtonEventArgs = null;
+
         public MediaPlayer()
-        { }
+        {
+            _timer = new DispatcherTimer();
+            _timer.Interval = TimeSpan.FromSeconds(0.2);
+            _timer.Tick += _timer_Tick;
+        }
+
+        private void _timer_Tick(object? sender, EventArgs e)
+        {
+            _timer.Stop();
+            _MouseClickedCount = 0;
+            HandleMouseAction(sender, _CurrentMouseButtonEventArgs, 1);
+        }
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -137,7 +152,18 @@ namespace HanumanInstitute.MediaPlayer.WPF
 
         private void Host_MouseDown(object? sender, MouseButtonEventArgs e)
         {
-            HandleMouseAction(sender, e, 1);
+            _MouseClickedCount++;
+            if (_MouseClickedCount == 2)
+            {
+                _MouseClickedCount = 0;
+                _timer.Stop();
+                HandleMouseAction(sender, e, 2);
+            }
+            else
+            {
+                _CurrentMouseButtonEventArgs = e;
+                _timer.Start();
+            }
         }
 
         /// <summary>
@@ -162,9 +188,36 @@ namespace HanumanInstitute.MediaPlayer.WPF
             }
         }
 
-        private bool IsActionFullScreen(MouseButtonEventArgs e, int clickCount) => IsMouseAction(MouseFullscreen, e, clickCount);
+        private bool IsActionFullScreen(MouseButtonEventArgs e, int clickCount) => IsMouseActionEx(MouseFullscreen, e, clickCount, 2);
 
         private bool IsActionPause(MouseButtonEventArgs e, int clickCount) => IsMouseAction(MousePause, e, clickCount);
+
+        private static bool IsMouseActionEx(MouseTrigger a, MouseButtonEventArgs e, int clickCount, int desiredClickCount = 1)
+        {
+            if (clickCount != desiredClickCount)
+            {
+                return false;
+            }
+
+            if (a == MouseTrigger.LeftClick && e.ChangedButton == MouseButton.Left)
+            {
+                return true;
+            }
+
+            if (a == MouseTrigger.MiddleClick && e.ChangedButton == MouseButton.Middle)
+            {
+                return true;
+            }
+
+            if (a == MouseTrigger.RightClick && e.ChangedButton == MouseButton.Right)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
 
         private static bool IsMouseAction(MouseTrigger a, MouseButtonEventArgs e, int clickCount)
         {
@@ -213,8 +266,10 @@ namespace HanumanInstitute.MediaPlayer.WPF
         }
 
         private Panel? _uiParentCache;
+
         /// <summary>
-        /// Returns the container of this control the first time it is called and maintain reference to that container.
+        /// Returns the container of this control the first time it is called and maintain reference
+        /// to that container.
         /// </summary>
         private Panel UIParentCache
         {
@@ -234,54 +289,62 @@ namespace HanumanInstitute.MediaPlayer.WPF
 
         // TitleProperty
         public static readonly DependencyProperty TitleProperty = DependencyProperty.Register("Title", typeof(bool), typeof(MediaPlayer));
+
         public string Title { get => (string)GetValue(TitleProperty); set => SetValue(TitleProperty, value); }
 
         // MouseFullscreen
         public static readonly DependencyProperty MouseFullscreenProperty = DependencyProperty.Register("MouseFullscreen", typeof(MouseTrigger), typeof(MediaPlayer),
             new PropertyMetadata(MouseTrigger.MiddleClick));
+
         public MouseTrigger MouseFullscreen { get => (MouseTrigger)GetValue(MouseFullscreenProperty); set => SetValue(MouseFullscreenProperty, value); }
 
         // MousePause
         public static readonly DependencyProperty MousePauseProperty = DependencyProperty.Register("MousePause", typeof(MouseTrigger), typeof(MediaPlayer),
             new PropertyMetadata(MouseTrigger.LeftClick));
+
         public MouseTrigger MousePause { get => (MouseTrigger)GetValue(MousePauseProperty); set => SetValue(MousePauseProperty, value); }
 
         // ChangeVolumeOnMouseWheel
         public static readonly DependencyProperty ChangeVolumeOnMouseWheelProperty = DependencyProperty.Register("ChangeVolumeOnMouseWheel", typeof(bool), typeof(MediaPlayer),
             new PropertyMetadata(true));
+
         public bool ChangeVolumeOnMouseWheel { get => (bool)GetValue(ChangeVolumeOnMouseWheelProperty); set => SetValue(ChangeVolumeOnMouseWheelProperty, value); }
 
         // IsPlayPauseVisible
         public static readonly DependencyProperty IsPlayPauseVisibleProperty = DependencyProperty.Register("IsPlayPauseVisible", typeof(bool), typeof(MediaPlayer),
             new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsParentArrange));
+
         public bool IsPlayPauseVisible { get => (bool)GetValue(IsPlayPauseVisibleProperty); set => SetValue(IsPlayPauseVisibleProperty, value); }
 
         // IsStopVisible
         public static readonly DependencyProperty IsStopVisibleProperty = DependencyProperty.Register("IsStopVisible", typeof(bool), typeof(MediaPlayer),
             new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsParentArrange));
+
         public bool IsStopVisible { get => (bool)GetValue(IsStopVisibleProperty); set => SetValue(IsStopVisibleProperty, value); }
 
         // IsLoopVisible
         public static readonly DependencyProperty IsLoopVisibleProperty = DependencyProperty.Register("IsLoopVisible", typeof(bool), typeof(MediaPlayer),
             new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsParentArrange));
+
         public bool IsLoopVisible { get => (bool)GetValue(IsLoopVisibleProperty); set => SetValue(IsLoopVisibleProperty, value); }
 
         // IsVolumeVisible
         public static readonly DependencyProperty IsVolumeVisibleProperty = DependencyProperty.Register("IsVolumeVisible", typeof(bool), typeof(MediaPlayer),
             new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsParentArrange));
+
         public bool IsVolumeVisible { get => (bool)GetValue(IsVolumeVisibleProperty); set => SetValue(IsVolumeVisibleProperty, value); }
 
         // IsSpeedVisible
         public static readonly DependencyProperty IsSpeedVisibleProperty = DependencyProperty.Register("IsSpeedVisible", typeof(bool), typeof(MediaPlayer),
             new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsParentArrange));
+
         public bool IsSpeedVisible { get => (bool)GetValue(IsSpeedVisibleProperty); set => SetValue(IsSpeedVisibleProperty, value); }
 
         // IsSeekBarVisible
         public static readonly DependencyProperty IsSeekBarVisibleProperty = DependencyProperty.Register("IsSeekBarVisible", typeof(bool), typeof(MediaPlayer),
             new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsParentArrange));
+
         public bool IsSeekBarVisible { get => (bool)GetValue(IsSeekBarVisibleProperty); set => SetValue(IsSeekBarVisibleProperty, value); }
-
-
 
         public void OnSeekBarPreviewMouseLeftButtonDown(object? sender, MouseButtonEventArgs e)
         {
@@ -310,11 +373,13 @@ namespace HanumanInstitute.MediaPlayer.WPF
         }
 
         private DateTime _lastDragCompleted = DateTime.MinValue;
+
         public void OnSeekBarDragCompleted(object? sender, DragCompletedEventArgs e)
         {
             if (PlayerHost == null) { return; }
 
-            // DragCompleted can trigger multiple times after switching to/from fullscreen. Ignore multiple events within a second.
+            // DragCompleted can trigger multiple times after switching to/from fullscreen. Ignore
+            // multiple events within a second.
             if ((DateTime.Now - _lastDragCompleted).TotalSeconds < 1)
             {
                 return;
@@ -326,12 +391,13 @@ namespace HanumanInstitute.MediaPlayer.WPF
             IsSeekBarPressed = false;
         }
 
-
         public FullScreenUI? FullScreenUI { get; private set; }
 
         public ICommand ToggleFullScreenCommand => CommandHelper.InitCommand(ref _toggleFullScreenCommand, ToggleFullScreen, CanToggleFullScreen);
         private RelayCommand? _toggleFullScreenCommand;
+
         private bool CanToggleFullScreen() => PlayerHost != null;
+
         private void ToggleFullScreen()
         {
             FullScreen = !FullScreen;
@@ -354,6 +420,7 @@ namespace HanumanInstitute.MediaPlayer.WPF
                         FullScreenUI = new FullScreenUI();
                         FullScreenUI.Closed += FullScreenUI_Closed;
                         FullScreenUI.MouseDown += Host_MouseDown;
+                        FullScreenUI.MouseWheel += Host_MouseWheel;
                         // Transfer key bindings.
                         InputBindingBehavior.TransferBindingsToWindow(Window.GetWindow(this), FullScreenUI, false);
                         // Transfer player.
